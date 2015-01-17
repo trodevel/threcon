@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Id: controller.h 957 2014-08-14 17:50:49Z serge $
+// $Revision: 1404 $ $Date:: 2015-01-16 #$ $Author: serge $
 
 #ifndef LIB_THRECON_CONTROLLER_H
 #define LIB_THRECON_CONTROLLER_H
