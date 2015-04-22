@@ -9,23 +9,7 @@ MODE ?= debug
 
 ###################################################################
 
-BOOST_PATH := $(shell echo $$BOOST_PATH)
-
-ifeq (,$(BOOST_PATH))
-    $(error 'please define path to boost $$BOOST_PATH')
-endif
-
-###################################################################
-
-BOOST_INC=$(BOOST_PATH)
-BOOST_LIB_PATH=$(BOOST_PATH)/stage/lib
-
-BOOST_LIB_NAMES := boost_system boost_thread
-BOOST_LIBS = $(patsubst %,$(BOOST_LIB_PATH)/lib%.a,$(BOOST_LIB_NAMES))
-
-###################################################################
-
-EXT_LIBS=$(BOOST_LIBS)
+EXT_LIBS=
 
 ###################################################################
 

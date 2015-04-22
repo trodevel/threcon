@@ -19,11 +19,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 1404 $ $Date:: 2015-01-16 #$ $Author: serge $
+// $Revision: 1717 $ $Date:: 2015-04-21 #$ $Author: serge $
 
 #include "controller.h"         // self
 
-#include "../utils/wrap_mutex.h"    // SCOPE_LOCK
+#include <algorithm>                // std::for_each
+#include <functional>               // std::bind
+
+#include "../utils/mutex_helper.h"  // MUTEX_SCOPE_LOCK
 #include "../utils/dummy_logger.h"  // dummy_log
 
 #define MODULENAME      "Controller"
@@ -36,7 +39,7 @@ Controller::Controller(): command_( commands_e::NONE )
 
 bool Controller::register_client( IControllable* c )
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     bool res = clients_.insert( c ).second;
 
@@ -54,26 +57,27 @@ void Controller::thread_func()
     while( should_run )
     {
         {
-            cond_.wait( mutex_cond_ );
+            std::unique_lock<std::mutex> lock( mutex_cond_ );
+            cond_.wait( lock );
         }
 
         {
-            SCOPE_LOCK( mutex_ );
+            MUTEX_SCOPE_LOCK( mutex_ );
 
             switch( command_ )
             {
             case START:
                 // currently start/stop are disabled, e814
-                //std::for_each( clients_.begin(), clients_.end(), boost::bind( &IControllable::start, _1 ));
+                //std::for_each( clients_.begin(), clients_.end(), std::bind( &IControllable::start, std::placeholders::_1 ));
                 break;
 
             case STOP:
                 // currently start/stop are disabled, e814
-                //std::for_each( clients_.begin(), clients_.end(), boost::bind( &IControllable::stop, _1 ));
+                //std::for_each( clients_.begin(), clients_.end(), std::bind( &IControllable::stop, std::placeholders::_1 ));
                 break;
 
             case SHUTDOWN:
-                std::for_each( clients_.begin(), clients_.end(), boost::bind( &IControllable::shutdown, _1 ));
+                std::for_each( clients_.begin(), clients_.end(), std::bind( &IControllable::shutdown, std::placeholders::_1 ));
                 should_run  = false;
                 break;
 
@@ -91,7 +95,7 @@ void Controller::thread_func()
 
 void Controller::send_start()
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     command_ = START;
 
@@ -100,7 +104,7 @@ void Controller::send_start()
 
 void Controller::send_stop()
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     command_ = STOP;
 
@@ -109,7 +113,7 @@ void Controller::send_stop()
 
 void Controller::send_shutdown()
 {
-    SCOPE_LOCK( mutex_ );
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     command_ = SHUTDOWN;
 
